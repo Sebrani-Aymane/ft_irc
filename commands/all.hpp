@@ -19,15 +19,18 @@
 #define GRE "\e[1;32m" //-> for green color
 #define YEL "\e[1;33m" //-> for yellow color
 //-------------------------------------------------------//
+class Acommands;
 class Client //-> class for client
 {
 private:
 	int Fd; //-> client file descriptor
 	std::string IPadd; //-> client ip address
+	int isAut;
 public:
-	Client(){}; //-> default constructor
+	Client(){this->isAut=0;}; //-> default constructor
 	int GetFd(){return Fd;} //-> getter for fd
-
+	int getAut(void);
+	void setAut(int value);
 	void SetFd(int fd){Fd = fd;} //-> setter for fd
 	void setIpAdd(std::string ipadd){IPadd = ipadd;} //-> setter for ipadd
 };
@@ -49,8 +52,16 @@ public:
 	void SerSocket(); //-> server socket creation
 	void AcceptNewClient(); //-> accept new client
 	void ReceiveNewData(int fd); //-> receive new data from a registered client
-
+	void authen();
 	static void SignalHandler(int signum); //-> signal handler
+	int getClientaut(int fd){
+		for (int i=0; i<=50000;i++)
+		{
+			if (clients[i].GetFd() ==fd)
+				 return(clients[i].getAut());
+		}
+			
+	};
 	
 	void CloseFds(); //-> close file descriptors
 	void ClearClients(int fd); //-> clear clients

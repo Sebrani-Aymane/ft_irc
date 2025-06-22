@@ -1,7 +1,7 @@
 
 #include "all.hpp"
 #include <cstdlib>
-
+#include "commands.hpp"
 //-------------------------------------------------------//
 void Server::ClearClients(int fd){ //-> clear the clients
 	for(size_t i = 0; i < fds.size(); i++){ //-> remove the client from the pollfd
@@ -14,6 +14,7 @@ void Server::ClearClients(int fd){ //-> clear the clients
 	}
 
 }
+
 
 bool Server::Signal = false; //-> initialize the static boolean
 void Server::SignalHandler(int signum)
@@ -33,28 +34,27 @@ void	Server::CloseFds(){
 		close(SerSocketFd);
 	}
 }
+class Acommands;
 
 void Server::ReceiveNewData(int fd)
 {
-    Acommands command;
+	Acommands commands;
 
 	char buff[1024]; //-> buffer for the received data
 	memset(buff, 0, sizeof(buff)); //-> clear the buffer
 
 	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0); //-> receive the data
-    
-    std::cout<<buff[0]<<buff[1] <<buff[2];
+
 	if(bytes <= 0){ //-> check if the client disconnected
 		std::cout << RED << "Client <" << fd << "> Disconnected" << WHI << std::endl;
 		ClearClients(fd); //-> clear the client
 		close(fd); //-> close the client socket
 	}
-
-	else{ //-> print the received data
-		buff[bytes] = '\0';
-		std::cout << YEL << "Client <" << fd << "> Data: " << WHI << buff;
-        command.getFirstWord(buff);
-	}
+	
+	buff[bytes] = '\0';
+	std::cout << YEL << "Client <" << fd << "> Data: " << WHI << buff;
+	std::string line=  commands.getFirstWord(buff);
+	commands.getCommand(line,fd,this,buff);
 }
 
 void Server::AcceptNewClient()
