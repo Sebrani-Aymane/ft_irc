@@ -1,4 +1,3 @@
-
 #ifndef ALL_HPP
 #define ALL_HPP
 #include <cstring>
@@ -19,7 +18,7 @@
 #define GRE "\e[1;32m" //-> for green color
 #define YEL "\e[1;33m" //-> for yellow color
 //-------------------------------------------------------//
-class Acommands;
+
 class Client //-> class for client
 {
 private:
@@ -30,7 +29,7 @@ public:
 	Client(){this->isAut=0;}; //-> default constructor
 	int GetFd(){return Fd;} //-> getter for fd
 	int getAut(void);
-	void setAut(int value);
+	void setAut(int value){this->isAut = value;} //-> setter for isAut;
 	void SetFd(int fd){Fd = fd;} //-> setter for fd
 	void setIpAdd(std::string ipadd){IPadd = ipadd;} //-> setter for ipadd
 };
@@ -51,19 +50,29 @@ public:
 	void ServerInit(int port,std::string pass); //-> server initialization
 	void SerSocket(); //-> server socket creation
 	void AcceptNewClient(); //-> accept new client
-	void ReceiveNewData(int fd); //-> receive new data from a registered client
+	void ReceiveNewData(int fd,Server *server); //-> receive new data from a registered client
 	void authen();
 	static void SignalHandler(int signum); //-> signal handler
-	int getClientaut(int fd){
-		for (int i=0; i<=50000;i++)
-		{
-			if (clients[i].GetFd() ==fd)
-				 return(clients[i].getAut());
+	int getClientaut(int fd) {
+		for (size_t i = 0; i < clients.size(); i++) { // Use clients.size() to avoid out-of-bounds access
+			if (clients[i].GetFd() == fd)
+				return clients[i].getAut();
 		}
-			
-	};
-	
+		return -1; // Return a default value if no matching client is found
+	}
+	std::string getpass(void) {
+
+		return pass;
+	}
+	void setpass(std::string pass) {
+		std::cout << "Server password set to: " << pass << std::endl;
+		this->pass = pass;
+	}
 	void CloseFds(); //-> close file descriptors
 	void ClearClients(int fd); //-> clear clients
 };
+
+// Define the static member outside the class
+//bool Server::Signal = false;
+
 #endif

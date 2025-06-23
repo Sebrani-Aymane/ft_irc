@@ -1,4 +1,3 @@
-
 #include "all.hpp"
 #include <cstdlib>
 #include "commands.hpp"
@@ -14,14 +13,12 @@ void Server::ClearClients(int fd){ //-> clear the clients
 	}
 
 }
-
-
 bool Server::Signal = false; //-> initialize the static boolean
 void Server::SignalHandler(int signum)
 {
 	(void)signum;
 	std::cout << std::endl << "Signal Received!" << std::endl;
-	Server::Signal = true; //-> set the static boolean to true to stop the server
+	//Server::Signal = true; //-> set the static boolean to true to stop the server
 }
 
 void	Server::CloseFds(){
@@ -36,25 +33,29 @@ void	Server::CloseFds(){
 }
 class Acommands;
 
-void Server::ReceiveNewData(int fd)
+void Server::ReceiveNewData(int fd,Server *server) //-> receive new data from a registered client
 {
 	Acommands commands;
 
 	char buff[1024]; //-> buffer for the received data
 	memset(buff, 0, sizeof(buff)); //-> clear the buffer
 
-	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0); //-> receive the data
+	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1, 0); //-> receive the data
 
-	if(bytes <= 0){ //-> check if the client disconnected
-		std::cout << RED << "Client <" << fd << "> Disconnected" << WHI << std::endl;
+	if (bytes <= 0) { //-> check if the client disconnected or an error occurred
+		if (bytes == 0) {
+			std::cout << RED << "Client <" << fd << "> Disconnected" << WHI << std::endl;
+		} else {
+			std::cerr << RED << "Error receiving data from client <" << fd << ">" << WHI << std::endl;
+		}
 		ClearClients(fd); //-> clear the client
 		close(fd); //-> close the client socket
+		return;
 	}
-	
+
 	buff[bytes] = '\0';
 	std::cout << YEL << "Client <" << fd << "> Data: " << WHI << buff;
-	std::string line=  commands.getFirstWord(buff);
-	commands.getCommand(line,fd,this,buff);
+	std::cout <<commands.getCommand( fd, this, buff)<<std::endl;
 }
 
 void Server::AcceptNewClient()
@@ -114,7 +115,7 @@ void Server::SerSocket()
 void Server::ServerInit(int _port,std::string pass)
 {
 	this->Port = _port;
-    this->pass = pass;
+    this->setpass(pass); //-> set the password for the server
 	SerSocket(); //-> create the server socket
 
 	std::cout << GRE << "Server <" << SerSocketFd << "> Connected" << WHI << std::endl;
@@ -130,7 +131,7 @@ void Server::ServerInit(int _port,std::string pass)
 				if (fds[i].fd == SerSocketFd){
 					AcceptNewClient(); //-> accept new client
                 }else
-					ReceiveNewData(fds[i].fd); //-> receive new data from a registered client
+					ReceiveNewData(fds[i].fd,this); //-> receive new data from a registered client
 			}
 		}
 	}
@@ -139,19 +140,21 @@ void Server::ServerInit(int _port,std::string pass)
 
 int main(int ac,char **av)
 {
-    (void) ac;
+	if (ac != 3) { //-> validate the number of arguments
+		std::cerr << RED << "Usage: " << av[0] << " <port> <password>" << WHI << std::endl;
+		return 1;
+	}
+
 	Server ser;
-    int port;
-    std::string pass;
-    port = atoi(av[1]);
-    pass = av[2];
+	int port = atoi(av[1]);
+	std::string pass = av[2];
+
 	std::cout << "---- SERVER ----" << std::endl;
-	try{
+	try {
 		signal(SIGINT, Server::SignalHandler); //-> catch the signal (ctrl + c)
 		signal(SIGQUIT, Server::SignalHandler); //-> catch the signal (ctrl + \)
-		ser.ServerInit(port,pass); //-> initialize the server
-	}
-	catch(const std::exception& e){
+		ser.ServerInit(port, pass); //-> initialize the server
+	} catch (const std::exception &e) {
 		ser.CloseFds(); //-> close the file descriptors
 		std::cerr << e.what() << std::endl;
 	}

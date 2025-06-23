@@ -1,24 +1,23 @@
 #ifndef COMMANDS_HPP
 #define COMMANDS_HPP
-
-
 #include <iostream>
-#include  <string>
-#include "Pass.hpp"
+#include <string>
 
-class Acommands{
-    private : 
+class Server;
+
+class Acommands {
+private:
     std::string name;
-
     std::string args;
-    public:
-
-    void execute(std::string sever_name,std::string client_name);
+    
+public:
+    virtual ~Acommands() = default;
+    void execute(const std::string& server_name, const std::string& client_name);
     std::string getName(void);
-    void set_name(std::string);
+    void set_name(const std::string& name);
     std::string getArgs(void);
     std::string getFirstWord(char *buff);
-    std::string getCommand(std::string line,int fd,Server *srver,char *command);
+    std::string getCommand( int fd, Server *server, char *command);
 };
 
 #endif
