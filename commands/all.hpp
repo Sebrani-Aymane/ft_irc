@@ -1,78 +1,89 @@
 #ifndef ALL_HPP
 #define ALL_HPP
+
 #include <cstring>
-#include <vector> //-> for vector
-#include <sys/socket.h> //-> for socket()
-#include <sys/types.h> //-> for socket()
-#include <netinet/in.h> //-> for sockaddr_in
-#include <fcntl.h> //-> for fcntl()
-#include <unistd.h> //-> for close()
-#include <arpa/inet.h> //-> for inet_ntoa()
-#include <poll.h> //-> for poll()
-#include <csignal> //-> for signal()
+#include <vector>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <poll.h>
+#include <sstream>
+#include <csignal>
 #include <iostream>
 #include "commands.hpp"
-//-------------------------------------------------------//
-#define RED "\e[1;31m" //-> for red color
-#define WHI "\e[0;37m" //-> for white color
-#define GRE "\e[1;32m" //-> for green color
-#define YEL "\e[1;33m" //-> for yellow color
-//-------------------------------------------------------//
 
-class Client //-> class for client
+#define RED "\e[1;31m"
+#define WHI "\e[0;37m"
+#define GRE "\e[1;32m"
+#define YEL "\e[1;33m"
+
+class Client
 {
 private:
-	int Fd; //-> client file descriptor
-	std::string IPadd; //-> client ip address
+	int Fd;
+	std::string IPadd;
 	int isAut;
 public:
-	Client(){this->isAut=0;}; //-> default constructor
-	int GetFd(){return Fd;} //-> getter for fd
+	Client(){this->isAut=0;};
+	int GetFd(){return Fd;}
 	int getAut(void);
-	void setAut(int value){this->isAut = value;} //-> setter for isAut;
-	void SetFd(int fd){Fd = fd;} //-> setter for fd
-	void setIpAdd(std::string ipadd){IPadd = ipadd;} //-> setter for ipadd
+	void setAut(int value){this->isAut = value;}
+	void SetFd(int fd){Fd = fd;}
+	void setIpAdd(std::string ipadd){IPadd = ipadd;}
+	bool IsAuthenticated() const;
+	void SetAuthenticated(bool status);
 };
 
-class Server //-> class for server
+
+
+
+
+
+
+
+
+class Server
 {
 private:
-	int Port; //-> server port
-    std::string pass;
-
-	int SerSocketFd; //-> server socket file descriptor
-	static bool Signal; //-> static boolean for signal
-	std::vector<Client> clients; //-> vector of clients
-	std::vector<struct pollfd> fds; //-> vector of pollfd
+	int Port;
+	std::string pass;
+	int SerSocketFd;
+	static bool Signal;
+	std::vector<Client> clients;
+	std::vector<struct pollfd> fds;
 public:
-	Server(){SerSocketFd = -1;} //-> default constructor
-
-	void ServerInit(int port,std::string pass); //-> server initialization
-	void SerSocket(); //-> server socket creation
-	void AcceptNewClient(); //-> accept new client
-	void ReceiveNewData(int fd,Server *server); //-> receive new data from a registered client
+	Server(){SerSocketFd = -1;}
+	void ServerInit(int port,std::string pass);
+	void SerSocket();
+	void AcceptNewClient();
+	void ReceiveNewData(int fd,Server *server);
 	void authen();
-	static void SignalHandler(int signum); //-> signal handler
+	static void SignalHandler(int signum);
 	int getClientaut(int fd) {
-		for (size_t i = 0; i < clients.size(); i++) { // Use clients.size() to avoid out-of-bounds access
+		for (size_t i = 0; i < clients.size(); i++) {
 			if (clients[i].GetFd() == fd)
 				return clients[i].getAut();
 		}
-		return -1; // Return a default value if no matching client is found
+		return -1;
 	}
 	std::string getpass(void) {
-
 		return pass;
 	}
 	void setpass(std::string pass) {
 		std::cout << "Server password set to: " << pass << std::endl;
 		this->pass = pass;
 	}
-	void CloseFds(); //-> close file descriptors
-	void ClearClients(int fd); //-> clear clients
+	void CloseFds();
+	void ClearClients(int fd);
+	/////////////////////////////////////////////////////
+	void SendMessage(int fd, const std::string& message);
+	void AuthenticateClient(int fd, const std::string& password);
+	void SetClientAuthenticated(int fd, bool status);
+	bool IsClientAuthenticated(int fd);
+	
 };
-
-// Define the static member outside the class
-//bool Server::Signal = false;
 
 #endif

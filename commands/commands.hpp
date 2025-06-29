@@ -11,7 +11,7 @@ private:
     std::string args;
     
 public:
-    virtual ~Acommands() = default;
+    virtual ~Acommands(){};
     void execute(const std::string& server_name, const std::string& client_name);
     std::string getName(void);
     void set_name(const std::string& name);

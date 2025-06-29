@@ -1,25 +1,37 @@
 #include "Pass.hpp"
+#include "all.hpp"
 
-int Pass::checkPass(std::string input, Server &server) {
-   
- 
-    std::string pass = server.getpass(); 
-    int client_fd = client.GetFd();
-
-    std::string password;
-    for (int i = 4; i < input.size(); i++) {
-        if (input[i] == ' ' || input[i] == '\n' || input[i] == '\r') {
-            continue;  
-        }
-        password += input[i]; 
-    }
- std::cout <<"blass       " <<password << " blasss"<< std::endl;
-    if(pass == password) {
-        client.setAut(1);
-        std::cout << "Client <" << client_fd << "authenticated." << std::endl;
-        return 0;
-    } else {
-        std::cout << "Error: Incorrect password for client <" << client_fd  << std::endl;
+int Pass::authenticateClient(std::string input, Server &server, int fd) {
+    // Check if client is already authenticated
+    if (server.IsClientAuthenticated(fd)) {
+        server.SendMessage(fd, ":server 462 * :You may not reregister");
         return -1;
     }
+
+    // Extract password from input
+    std::string password;
+    size_t spacePos = input.find(' ');
+    if (spacePos != std::string::npos) {
+        password = input.substr(spacePos + 1);
+        
+        // Trim whitespace from the end - C++98 compatible version
+        while (!password.empty()) {
+            char lastChar = password[password.length() - 1];
+            if (lastChar == ' ' || lastChar == '\n' || lastChar == '\r') {
+                password.erase(password.length() - 1);
+            } else {
+                break;
+            }
+        }
+    }
+
+    // Check if password was provided
+    if (password.empty()) {
+        server.SendMessage(fd, ":server 461 PASS :Not enough parameters");
+        return -1;
+    }
+
+    // Authenticate
+    server.AuthenticateClient(fd, password);
+    return server.IsClientAuthenticated(fd) ? 0 : -1;
 }
