@@ -5,12 +5,14 @@ OBJDIR = obj
 
 SOURCES = main.cpp \
           commands.cpp \
-          Pass.cpp
+          Pass.cpp \
+		  client.cpp
 
 OBJS = $(SOURCES:.cpp=.o)
 
 NAME = ircserv
 INCS = all.hpp \
+	   client.hpp \
        commands.hpp \
        Pass.hpp
 

@@ -14,35 +14,11 @@
 #include <csignal>
 #include <iostream>
 #include "commands.hpp"
-
+#include "client.hpp"
 #define RED "\e[1;31m"
 #define WHI "\e[0;37m"
 #define GRE "\e[1;32m"
 #define YEL "\e[1;33m"
-
-class Client
-{
-private:
-	int Fd;
-	std::string IPadd;
-	int isAut;
-public:
-	Client(){this->isAut=0;};
-	int GetFd(){return Fd;}
-	int getAut(void);
-	void setAut(int value){this->isAut = value;}
-	void SetFd(int fd){Fd = fd;}
-	void setIpAdd(std::string ipadd){IPadd = ipadd;}
-	bool IsAuthenticated() const;
-	void SetAuthenticated(bool status);
-};
-
-
-
-
-
-
-
 
 
 class Server
@@ -60,6 +36,7 @@ public:
 	void SerSocket();
 	void AcceptNewClient();
 	void ReceiveNewData(int fd,Server *server);
+	
 	void authen();
 	static void SignalHandler(int signum);
 	int getClientaut(int fd) {
@@ -83,7 +60,9 @@ public:
 	void AuthenticateClient(int fd, const std::string& password);
 	void SetClientAuthenticated(int fd, bool status);
 	bool IsClientAuthenticated(int fd);
-	
+	const std::vector<Client>& getClients() const {
+        return (clients);
+    }
 };
 
 #endif

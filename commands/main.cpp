@@ -3,17 +3,7 @@
 #include "commands.hpp"
 
 
-int Client::getAut(void) {
-    return this->isAut;
-}
 
-bool Client::IsAuthenticated() const {
-    return this->isAut == 1;
-}
-
-void Client::SetAuthenticated(bool status) {
-    this->isAut = status ? 1 : 0;
-}
 
 void Server::ClearClients(int fd){
 	for(size_t i = 0; i < fds.size(); i++){
@@ -78,7 +68,7 @@ bool Server::IsClientAuthenticated(int fd) {
 			return clients[i].IsAuthenticated();
 		}
 	}
-	return false;
+	return 0;
 }
 
 // In ReceiveNewData
@@ -110,7 +100,7 @@ if (!line.empty() && *(line.end() - 1) == '\r') {
 }
         if (!line.empty()) {
             Acommands commands;
-            commands.getCommand(fd, server, const_cast<char*>(line.c_str()));
+            commands.getCommand(fd, server, line.c_str());
         }
     }
 }
@@ -137,7 +127,6 @@ void Server::AcceptNewClient()
 	cli.setIpAdd(inet_ntoa((cliadd.sin_addr)));
 	clients.push_back(cli);
 	fds.push_back(NewPoll);
-    
 	std::cout << GRE << "Client <" << incofd << "> Connected" << WHI << std::endl;
 }
 
